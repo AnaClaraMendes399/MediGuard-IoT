@@ -1,0 +1,1964 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediGuard IoT — Hospital Security Center</title>
+
+  <!-- Google Fonts: Manrope & DM Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy: '#101E30',
+            darknavy: '#19334C',
+            mediblue: '#397BC8',
+            mediteal: '#269D99',
+            lightgray: '#F3F6FA',
+            alertred: '#DC2626',
+            alertamber: '#D97706',
+          },
+          fontFamily: {
+            sans: ['Manrope', 'DM Sans', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    /* Custom Scrollbar & Print Setup */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #101E30;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #19334C;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #397BC8;
+    }
+    .grid-bg {
+      background-image: radial-gradient(rgba(57, 123, 200, 0.12) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+    
+    @media print {
+      body {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-only {
+        display: block !important;
+      }
+      .print-container {
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+      }
+    }
+    .print-only {
+      display: none;
+    }
+  </style>
+</head>
+<body class="bg-[#F3F6FA] text-slate-800 font-sans min-h-screen flex flex-col md:flex-row antialiased selection:bg-mediblue selection:text-white">
+
+  <!-- MOBILE HEADER (NO PRINT) -->
+  <header class="no-print md:hidden bg-[#101E30] text-white p-4 flex items-center justify-between border-b border-[#19334C] sticky top-0 z-50">
+    <div class="flex items-center space-x-3">
+      <div class="w-9 h-9 rounded-lg bg-[#397BC8] flex items-center justify-center text-white shadow-md">
+        <i data-lucide="shield-check" class="w-5 h-5"></i>
+      </div>
+      <div>
+        <h1 class="font-bold text-base leading-tight tracking-tight text-white">MediGuard IoT</h1>
+        <p class="text-[10px] text-teal-300 font-mono tracking-wide">CYBER DEFENSE HOSPITALAR</p>
+      </div>
+    </div>
+    <button id="mobileMenuBtn" class="p-2 rounded-lg bg-[#19334C] text-slate-200 hover:text-white focus:outline-none">
+      <i data-lucide="menu" class="w-6 h-6"></i>
+    </button>
+  </header>
+
+  <!-- SIDEBAR FIXA (NO PRINT) -->
+  <aside id="sidebar" class="no-print bg-[#101E30] text-slate-300 w-full md:w-72 flex-shrink-0 flex flex-col justify-between hidden md:flex min-h-screen border-r border-[#19334C] sticky top-0 h-screen z-40 transition-all duration-300">
+    <div>
+      <!-- BRANDING -->
+      <div class="p-5 border-b border-[#19334C] flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#397BC8] to-[#269D99] flex items-center justify-center text-white shadow-lg">
+          <i data-lucide="activity" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h1 class="font-extrabold text-lg tracking-tight text-white flex items-center gap-1.5">
+            MediGuard <span class="text-[#269D99] text-xs px-1.5 py-0.5 rounded bg-[#269D99]/20 font-mono">IoT</span>
+          </h1>
+          <p class="text-xs text-slate-400 font-mono">Hospital Security Center</p>
+        </div>
+      </div>
+
+      <!-- COURSE / CONTEXT BADGE -->
+      <div class="px-5 py-3 bg-[#19334C]/40 border-b border-[#19334C] text-[11px] text-slate-400 flex items-center space-x-2">
+        <i data-lucide="graduation-cap" class="w-4 h-4 text-[#397BC8] shrink-0"></i>
+        <span>Técnico em Dev. Sistemas | IoT</span>
+      </div>
+
+      <!-- NAVIGATION LINKS -->
+      <nav class="p-4 space-y-1.5 text-sm font-medium">
+        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg transition-all bg-[#397BC8] text-white shadow-md">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          <span>Painel Principal</span>
+        </button>
+        <button onclick="switchTab('environments')" id="nav-environments" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg transition-all text-slate-400 hover:text-white hover:bg-[#19334C]">
+          <i data-lucide="building-2" class="w-4 h-4"></i>
+          <span>Ambientes Hospitalares</span>
+        </button>
+        <button onclick="switchTab('inventory')" id="nav-inventory" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg transition-all text-slate-400 hover:text-white hover:bg-[#19334C]">
+          <i data-lucide="cpu" class="w-4 h-4"></i>
+          <span>Dispositivos IoT</span>
+        </button>
+        <button onclick="switchTab('alerts')" id="nav-alerts" class="nav-btn w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg transition-all text-slate-400 hover:text-white hover:bg-[#19334C]">
+          <div class="flex items-center space-x-3">
+            <i data-lucide="bell" class="w-4 h-4"></i>
+            <span>Central de Alertas</span>
+          </div>
+          <span id="navAlertBadge" class="px-2 py-0.5 text-xs font-bold rounded-full bg-red-600 text-white">5</span>
+        </button>
+        <button onclick="switchTab('mission')" id="nav-mission" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg transition-all text-slate-400 hover:text-white hover:bg-[#19334C]">
+          <i data-lucide="shield-alert" class="w-4 h-4 text-amber-400"></i>
+          <span class="font-semibold text-white">Missão Interativa</span>
+        </button>
+        <button onclick="switchTab('report')" id="nav-report" class="nav-btn w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-lg transition-all text-slate-400 hover:text-white hover:bg-[#19334C]">
+          <i data-lucide="file-check-2" class="w-4 h-4"></i>
+          <span>Relatório de Auditoria</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- SIDEBAR FOOTER (DYNAMIC SCORE) -->
+    <div class="p-4 border-t border-[#19334C] bg-[#0C1624]">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs text-slate-400">Progresso da Defesa</span>
+        <span id="sidebarProgressTxt" class="text-xs font-bold text-[#269D99]">0 / 15 pts</span>
+      </div>
+      <div class="w-full bg-[#19334C] h-2 rounded-full overflow-hidden">
+        <div id="sidebarProgressBar" class="bg-gradient-to-r from-[#397BC8] to-[#269D99] h-full w-0 transition-all duration-500"></div>
+      </div>
+      <div class="mt-3 text-[11px] text-slate-400 flex justify-between items-center font-mono">
+        <span>Índice Hospitalar:</span>
+        <span id="sidebarSecurityIndex" class="text-amber-400 font-bold">35%</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+
+    <!-- TOP BAR / HEADER (NO PRINT) -->
+    <header class="no-print bg-white border-b border-slate-200 px-6 py-4 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-30 shadow-sm">
+      <div>
+        <h2 id="pageTitle" class="text-xl font-extrabold text-[#101E30] tracking-tight">Painel Principal de Cibersegurança</h2>
+        <p id="pageSubtitle" class="text-xs text-slate-500">Monitoramento em tempo real dos sistemas de IoT médico hospitalares</p>
+      </div>
+      
+      <div class="flex items-center space-x-4">
+        <!-- SYSTEM STATUS BADGE -->
+        <div class="hidden sm:flex items-center space-x-2 px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-xs font-medium">
+          <span class="relative flex h-2.5 w-2.5">
+            <span id="statusPing" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+            <span id="statusDot" class="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+          </span>
+          <span id="networkStatusText" class="text-slate-700">Rede sob Monitoramento</span>
+        </div>
+
+        <button onclick="switchTab('mission')" class="px-4 py-2 bg-[#397BC8] hover:bg-[#19334C] text-white text-xs font-semibold rounded-lg shadow-sm transition-all flex items-center space-x-2">
+          <i data-lucide="play" class="w-4 h-4"></i>
+          <span>Iniciar Missão</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- CONTENT WRAPPER -->
+    <div class="p-4 sm:p-6 lg:p-8 space-y-6 flex-1">
+
+      <!-- ==================== TAB 1: DASHBOARD ==================== -->
+      <section id="tab-dashboard" class="tab-content space-y-6">
+
+        <!-- METRIC CARDS -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Card 1 -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between hover:border-slate-300 transition-all">
+            <div>
+              <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Dispositivos IoT</p>
+              <h3 id="dashTotalDevices" class="text-2xl font-black text-[#101E30] mt-1">12</h3>
+              <p class="text-[11px] text-[#269D99] font-medium mt-1 flex items-center gap-1">
+                <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+                <span id="dashOnlineDevices">12 Conectados</span>
+              </p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-blue-50 text-[#397BC8] flex items-center justify-center">
+              <i data-lucide="cpu" class="w-6 h-6"></i>
+            </div>
+          </div>
+
+          <!-- Card 2 -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between hover:border-slate-300 transition-all">
+            <div>
+              <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Alertas Ativos</p>
+              <h3 id="dashActiveAlerts" class="text-2xl font-black text-red-600 mt-1">5</h3>
+              <p class="text-[11px] text-slate-500 font-medium mt-1">
+                <span id="dashMitigatedAlerts" class="text-slate-600 font-semibold">0</span> resolvidos na missão
+              </p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
+              <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+            </div>
+          </div>
+
+          <!-- Card 3 -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between hover:border-slate-300 transition-all">
+            <div>
+              <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Índice de Segurança</p>
+              <h3 id="dashSecurityIndex" class="text-2xl font-black text-amber-500 mt-1">35%</h3>
+              <p id="dashSecurityLabel" class="text-[11px] text-amber-600 font-medium mt-1">Nível Alerta Crítico</p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center">
+              <i data-lucide="shield-alert" class="w-6 h-6"></i>
+            </div>
+          </div>
+
+          <!-- Card 4 -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between hover:border-slate-300 transition-all">
+            <div>
+              <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Estado da Rede</p>
+              <h3 id="dashNetworkState" class="text-lg font-bold text-[#101E30] mt-1">Segmentação Parcial</h3>
+              <p class="text-[11px] text-slate-500 mt-1 font-mono">Latência: 14ms | IoT VLAN</p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-teal-50 text-[#269D99] flex items-center justify-center">
+              <i data-lucide="network" class="w-6 h-6"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- MAIN DASHBOARD CONTENT GRID -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+          <!-- LEFT COLUMN: CHART & QUICK SECTORS (2 COLS) -->
+          <div class="lg:col-span-2 space-y-6">
+
+            <!-- TELEMETRY CHART CARD -->
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h3 class="font-bold text-[#101E30] text-base">Telemetria de Tráfego & Requisições IoT</h3>
+                  <p class="text-xs text-slate-500">Monitoramento contínuo de pacotes e anomalias de rede hospitalar</p>
+                </div>
+                <span class="text-xs font-mono text-slate-400 bg-slate-100 px-2.5 py-1 rounded">Ao vivo</span>
+              </div>
+              <div class="h-64">
+                <canvas id="telemetryChart"></canvas>
+              </div>
+            </div>
+
+            <!-- SECTOR QUICK STATUS GRID -->
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+              <div class="flex items-center justify-between">
+                <h3 class="font-bold text-[#101E30] text-base">Visão Geral dos Setores Hospitalares</h3>
+                <button onclick="switchTab('environments')" class="text-xs text-[#397BC8] font-semibold hover:underline">Ver Planta Interativa &rarr;</button>
+              </div>
+              
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="dashSectorCards">
+                <!-- Sector cards dynamically rendered via JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT COLUMN: FEED & MISSION CALLOUT (1 COL) -->
+          <div class="space-y-6">
+
+            <!-- START MISSION HERO CARD -->
+            <div class="bg-gradient-to-br from-[#101E30] to-[#19334C] text-white p-6 rounded-xl shadow-lg relative overflow-hidden">
+              <div class="absolute -right-6 -bottom-6 opacity-10 text-white">
+                <i data-lucide="shield" class="w-44 h-44"></i>
+              </div>
+              <div class="relative z-10 space-y-3">
+                <span class="px-2.5 py-1 rounded bg-[#269D99]/20 text-[#269D99] border border-[#269D99]/30 text-xs font-mono font-bold inline-block">
+                  SIMULADOR EDUCATIVO
+                </span>
+                <h3 class="text-xl font-extrabold tracking-tight">Centro de Resposta a Incidentes</h3>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                  Você assumiu a liderança de Cibersegurança Hospitalar. Identifique falhas de IoT na UTI, Centro Cirúrgico, Farmácia e Servidores para proteger a vida dos pacientes.
+                </p>
+                <button onclick="switchTab('mission')" class="w-full mt-2 py-3 bg-[#397BC8] hover:bg-blue-600 text-white font-bold text-xs rounded-lg shadow-md transition-all flex items-center justify-center space-x-2">
+                  <i data-lucide="crosshair" class="w-4 h-4"></i>
+                  <span>Acessar Desafios da Missão</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- RECENT OCCURRENCES FEED -->
+            <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col h-80">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="font-bold text-[#101E30] text-base flex items-center gap-2">
+                  <i data-lucide="list" class="w-4 h-4 text-[#397BC8]"></i>
+                  Ocorrências Recentes
+                </h3>
+                <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono">Logs SIEM</span>
+              </div>
+
+              <div id="recentLogsFeed" class="flex-1 overflow-y-auto space-y-3 text-xs pr-1">
+                <!-- Log items rendered dynamically -->
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ==================== TAB 2: ENVIRONMENTS (PLANTA INTERATIVA) ==================== -->
+      <section id="tab-environments" class="tab-content hidden space-y-6">
+
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+          <h3 class="font-bold text-[#101E30] text-lg">Planta Arquitetônica Hospitalar Interativa</h3>
+          <p class="text-xs text-slate-500">Selecione qualquer setor para inspecionar os equipamentos IoT instalados, status e alertas associados.</p>
+        </div>
+
+        <!-- BLUEPRINT FLOORPLAN CONTAINER -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+          <!-- MAP SECTORS (2 COLS) -->
+          <div class="lg:col-span-2 bg-[#101E30] p-6 rounded-2xl shadow-xl grid-bg border border-[#19334C] space-y-4">
+            <div class="flex items-center justify-between text-slate-300 text-xs font-mono border-b border-[#19334C] pb-3">
+              <span class="flex items-center gap-2">
+                <i data-lucide="map-pin" class="w-4 h-4 text-[#397BC8]"></i>
+                PLANTA BAIXA - HOSPITAL MEDIGUARD (PAVIMENTO TÉRREO / UTI)
+              </span>
+              <span class="text-teal-400">Clique no setor para analisar</span>
+            </div>
+
+            <!-- SECTOR TILES GRID -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" id="blueprintGrid">
+              <!-- Rendered via JavaScript -->
+            </div>
+          </div>
+
+          <!-- SECTOR DETAIL PANEL (1 COL) -->
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5" id="sectorDetailCard">
+            <div class="text-center py-10 text-slate-400 space-y-2">
+              <i data-lucide="mouse-pointer-click" class="w-10 h-10 mx-auto text-slate-300"></i>
+              <p class="text-xs">Selecione um setor na planta para visualizar os detalhes e a infraestrutura de IoT.</p>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ==================== TAB 3: INVENTORY (DISPOSITIVOS IOT) ==================== -->
+      <section id="tab-inventory" class="tab-content hidden space-y-6">
+
+        <!-- FILTERS & HEADER -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
+          <div class="w-full md:w-auto">
+            <h3 class="font-bold text-[#101E30] text-lg">Inventário de Equipamentos IoT Médicos</h3>
+            <p class="text-xs text-slate-500">Catálogo detalhado de todos os dispositivos conectados à rede hospitalar</p>
+          </div>
+
+          <div class="w-full md:w-auto flex flex-wrap gap-2">
+            <!-- Search -->
+            <div class="relative flex-1 sm:w-48">
+              <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i>
+              <input type="text" id="deviceSearchInput" placeholder="Buscar por nome ou IP..." class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#397BC8]">
+            </div>
+
+            <!-- Sector Filter -->
+            <select id="deviceSectorFilter" class="px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#397BC8]">
+              <option value="ALL">Todos os Setores</option>
+              <option value="UTI">UTI</option>
+              <option value="Centro Cirúrgico">Centro Cirúrgico</option>
+              <option value="Recepção">Recepção</option>
+              <option value="Farmácia">Farmácia</option>
+              <option value="Enfermaria">Enfermaria</option>
+              <option value="Sala de Servidores">Sala de Servidores</option>
+            </select>
+
+            <!-- Status Filter -->
+            <select id="deviceStatusFilter" class="px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#397BC8]">
+              <option value="ALL">Todos os Status</option>
+              <option value="Alerta">Alerta</option>
+              <option value="Online">Online / Seguro</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- DEVICE CARDS GRID -->
+        <div id="devicesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Rendered via JS -->
+        </div>
+
+      </section>
+
+      <!-- ==================== TAB 4: CENTRAL DE ALERTAS ==================== -->
+      <section id="tab-alerts" class="tab-content hidden space-y-6">
+
+        <!-- HEADER & SEVERITY FILTER -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+          <div>
+            <h3 class="font-bold text-[#101E30] text-lg flex items-center gap-2">
+              <i data-lucide="bell-ring" class="w-5 h-5 text-red-600"></i>
+              Central de Alertas & Vulnerabilidades
+            </h3>
+            <p class="text-xs text-slate-500">Alertas identificados pelo sistema de detecção de intrusão hospitalar (IDS)</p>
+          </div>
+
+          <div class="flex items-center space-x-2">
+            <button onclick="filterAlerts('ALL')" class="alert-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#101E30] text-white">Todos</button>
+            <button onclick="filterAlerts('Critico')" class="alert-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600">Crítico</button>
+            <button onclick="filterAlerts('Alto')" class="alert-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-amber-50 hover:text-amber-600">Alto</button>
+            <button onclick="filterAlerts('Medio')" class="alert-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-600">Médio</button>
+            <button onclick="filterAlerts('Mitigado')" class="alert-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-teal-50 hover:text-[#269D99]">Mitigados</button>
+          </div>
+        </div>
+
+        <!-- ALERTS LIST -->
+        <div id="alertsListContainer" class="space-y-4">
+          <!-- Rendered via JS -->
+        </div>
+
+      </section>
+
+      <!-- ==================== TAB 5: INTERACTIVE MISSION (SIMULADOR DE RESPOSTA) ==================== -->
+      <section id="tab-mission" class="tab-content hidden space-y-6">
+
+        <!-- MISSION PROGRESS BANNER -->
+        <div class="bg-gradient-to-r from-[#101E30] via-[#19334C] to-[#101E30] text-white p-6 rounded-2xl shadow-md border border-[#19334C]">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <span class="px-2 py-0.5 rounded bg-[#397BC8]/30 text-[#397BC8] text-xs font-mono font-bold uppercase">
+                Simulador de Resposta a Incidentes
+              </span>
+              <h3 class="text-xl font-extrabold mt-1">Missão de Proteção Hospitalar</h3>
+              <p class="text-xs text-slate-300">Resolva os 5 desafios sequenciais (3 etapas obrigatórias cada) para mitigar as vulnerabilidades e blindar o hospital.</p>
+            </div>
+
+            <div class="bg-[#0C1624] p-4 rounded-xl border border-[#19334C] text-right shrink-0">
+              <span class="text-xs text-slate-400 block font-mono">Pontuação da Missão</span>
+              <span id="missionScoreDisplay" class="text-2xl font-black text-[#269D99]">0 / 15 pts</span>
+            </div>
+          </div>
+
+          <!-- CHALLENGE SELECTION TABS -->
+          <div class="mt-6 flex flex-wrap gap-2 border-t border-[#19334C] pt-4" id="missionTabButtons">
+            <!-- Buttons rendered via JS -->
+          </div>
+        </div>
+
+        <!-- CHALLENGE WIZARD BOX -->
+        <div id="challengeWizardBox" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+          <!-- Rendered via JS based on selected challenge -->
+        </div>
+
+      </section>
+
+      <!-- ==================== TAB 6: RELATÓRIO FINAL DE AUDITORIA ==================== -->
+      <section id="tab-report" class="tab-content hidden space-y-6">
+
+        <!-- PRINT CONTROL BAR (NO PRINT) -->
+        <div class="no-print bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h3 class="font-bold text-[#101E30] text-lg">Relatório Oficial de Auditoria de Cibersegurança</h3>
+            <p class="text-xs text-slate-500">Documento de conformidade e avaliação final do simulador MediGuard IoT</p>
+          </div>
+          <div class="flex items-center space-x-3">
+            <button onclick="resetWholeMission()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-all flex items-center space-x-2">
+              <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+              <span>Reiniciar Missão</span>
+            </button>
+            <button onclick="window.print()" class="px-5 py-2.5 bg-[#269D99] hover:bg-teal-700 text-white text-xs font-bold rounded-lg shadow-md transition-all flex items-center space-x-2">
+              <i data-lucide="printer" class="w-4 h-4"></i>
+              <span>Imprimir / Salvar PDF</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- PRINTABLE REPORT DOCUMENT CONTAINER -->
+        <div id="reportDocument" class="bg-white p-8 md:p-12 rounded-2xl border border-slate-300 shadow-md space-y-8 print-container">
+
+          <!-- REPORT HEADER -->
+          <div class="border-b-2 border-[#101E30] pb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 rounded bg-[#101E30] text-white flex items-center justify-center font-bold text-lg">M</div>
+                <h1 class="text-2xl font-black text-[#101E30] tracking-tight">MediGuard IoT Security Center</h1>
+              </div>
+              <p class="text-xs text-slate-500 font-mono mt-1">RELATÓRIO DE AUDITORIA E DEFESA DE CIBERSEGURANÇA HOSPITALAR</p>
+            </div>
+            <div class="text-left md:text-right font-mono text-xs text-slate-600">
+              <p><strong>Data de Emissão:</strong> <span id="reportDate"></span></p>
+              <p><strong>Instituição:</strong> Hospital MediGuard Central</p>
+              <p><strong>Unidade Curricular:</strong> Internet das Coisas (IoT)</p>
+            </div>
+          </div>
+
+          <!-- EXECUTIVE SCORE SUMMARY -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 bg-slate-50 p-6 rounded-xl border border-slate-200">
+            <div class="text-center md:text-left">
+              <span class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Pontuação Total Alcançada</span>
+              <div class="text-3xl font-black text-[#101E30] mt-1" id="reportScore">0 / 15 pts</div>
+              <span class="text-xs text-slate-500 font-mono" id="reportPercentage">Aproveitamento: 0%</span>
+            </div>
+
+            <div class="text-center md:text-left border-t md:border-t-0 md:border-l border-slate-200 pt-4 md:pt-0 md:pl-6">
+              <span class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Nível Final de Proteção</span>
+              <div class="text-2xl font-extrabold text-amber-600 mt-1" id="reportProtectionLevel">Vulnerável / Não Avaliado</div>
+              <span class="text-xs text-slate-500">Classificação Geral do Hospital</span>
+            </div>
+
+            <div class="text-center md:text-left border-t md:border-t-0 md:border-l border-slate-200 pt-4 md:pt-0 md:pl-6">
+              <span class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Desafios Concluídos</span>
+              <div class="text-3xl font-black text-[#269D99] mt-1" id="reportCompletedCount">0 / 5</div>
+              <span class="text-xs text-slate-500">Cenários de Risco Mitigados</span>
+            </div>
+          </div>
+
+          <!-- MANDATORY REQUIREMENTS CHECKLIST -->
+          <div class="space-y-3">
+            <h4 class="font-bold text-[#101E30] text-sm uppercase tracking-wider border-b border-slate-200 pb-2">
+              Requisitos Obrigatórios Alcançados
+            </h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs" id="reportRequirementsChecklist">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- DETAILED AUDIT TABLE OF RESOLVED CHALLENGES -->
+          <div class="space-y-3">
+            <h4 class="font-bold text-[#101E30] text-sm uppercase tracking-wider border-b border-slate-200 pb-2">
+              Detalhamento de Vulnerabilidades, Ameaças e Proteções Selecionadas
+            </h4>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr class="bg-[#101E30] text-white font-mono">
+                    <th class="p-3 rounded-tl-lg">Desafio / Equipamento</th>
+                    <th class="p-3">Vulnerabilidade Identificada</th>
+                    <th class="p-3">Ameaça Reconhecida</th>
+                    <th class="p-3">Medida de Proteção</th>
+                    <th class="p-3 rounded-tr-lg">Pontos</th>
+                  </tr>
+                </thead>
+                <tbody id="reportTableBody" class="divide-y divide-slate-200 border-b border-slate-200">
+                  <!-- Rendered via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- OFFICIAL FOOTER & SIGNATURE SIMULATION -->
+          <div class="pt-8 border-t border-slate-200 flex flex-col md:flex-row justify-between items-end gap-6 text-xs text-slate-500 font-mono">
+            <div>
+              <p>Sistema: MediGuard IoT — Cyber Defense Simulator</p>
+              <p>Curso Técnico em Desenvolvimento de Sistemas</p>
+            </div>
+            <div class="text-center">
+              <div class="w-48 border-b border-slate-400 mb-1"></div>
+              <p class="font-bold text-slate-700">Responsável de Cibersegurança</p>
+              <p class="text-[10px] text-slate-400">Auditoria Digital Hospitalar</p>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- JAVASCRIPT APP LOGIC -->
+  <script>
+    // ==========================================
+    // DATA MODEL & INITIAL STATE
+    // ==========================================
+
+    const SECTORS_DATA = [
+      {
+        id: 'UTI',
+        name: 'UTI — Unidade de Terapia Intensiva',
+        description: 'Setor crítico de alta complexidade contendo pacientes sob suporte contínuo de vida e monitoramento intensivo.',
+        icon: 'heart-pulse',
+        status: 'Crítico',
+        deviceCount: 3,
+        vulnerability: 'Senhas padrão no monitor multiparamétrico',
+        color: 'border-red-500'
+      },
+      {
+        id: 'Centro Cirúrgico',
+        name: 'Centro Cirúrgico',
+        description: 'Salas operatórias equipadas com sistemas IoT anestésicos, bombas de infusão e robótica médica de alta precisão.',
+        icon: 'syringe',
+        status: 'Alerta',
+        deviceCount: 2,
+        vulnerability: 'Bomba de infusão com firmware desatualizado',
+        color: 'border-amber-500'
+      },
+      {
+        id: 'Recepção',
+        name: 'Recepção & Controle de Acesso',
+        description: 'Área de triagem, identificação de pacientes e controle perimetral por câmeras IP e catracas eletrônicas.',
+        icon: 'door-closed',
+        status: 'Alerta',
+        deviceCount: 2,
+        vulnerability: 'Câmera IP transmitindo sem criptografia (RTSP)',
+        color: 'border-amber-500'
+      },
+      {
+        id: 'Farmácia',
+        name: 'Farmácia Hospitalar',
+        description: 'Armazenamento de medicamentos de alto custo e imunobiológicos com refrigeração rigorosamente monitorada.',
+        icon: 'thermometer-snowflake',
+        status: 'Alerta',
+        deviceCount: 2,
+        vulnerability: 'Sensor de temperatura desconectado sem redundância',
+        color: 'border-amber-500'
+      },
+      {
+        id: 'Enfermaria',
+        name: 'Enfermaria de Internação',
+        description: 'Leitos de recuperação equipados com painéis de chamada de enfermagem IoT e sensores ambientais.',
+        icon: 'bed',
+        status: 'Seguro',
+        deviceCount: 1,
+        vulnerability: 'Nenhuma vulnerabilidade crítica ativa',
+        color: 'border-teal-500'
+      },
+      {
+        id: 'Sala de Servidores',
+        name: 'Sala de Servidores & Data Center',
+        description: 'Núcleo da infraestrutura tecnológica hospitalar (servidores PACS/HIS, gateways IoT e firewalls).',
+        icon: 'server',
+        status: 'Crítico',
+        deviceCount: 2,
+        vulnerability: 'Rede plana sem VLANs e sem backups imutáveis',
+        color: 'border-red-500'
+      }
+    ];
+
+    const DEVICES_DATA = [
+      {
+        id: 'DEV-01',
+        name: 'Monitor Multiparamétrico UTI-01',
+        sector: 'UTI',
+        type: 'Monitor de Sinais Vitais',
+        ip: '192.168.10.45',
+        mac: '00:1A:2B:3C:4D:5E',
+        status: 'Alerta',
+        description: 'Monitor de ECG, oximetria e pressão arterial contínua conectado ao barramento de telemetria.'
+      },
+      {
+        id: 'DEV-02',
+        name: 'Bomba de Infusão Inteligente CC-03',
+        sector: 'Centro Cirúrgico',
+        type: 'Bomba de Infusão',
+        ip: '192.168.10.88',
+        mac: '00:1A:2B:99:88:77',
+        status: 'Alerta',
+        description: 'Dispositivo automatizado para administração dosada de fármacos anestésicos e analgesia.'
+      },
+      {
+        id: 'DEV-03',
+        name: 'Câmera IP Dome Recepção',
+        sector: 'Recepção',
+        type: 'Câmera de Segurança',
+        ip: '192.168.20.12',
+        mac: '00:1A:2B:11:22:33',
+        status: 'Alerta',
+        description: 'Câmera HD com visão noturna cobrindo a entrada principal e balcão de atendimento.'
+      },
+      {
+        id: 'DEV-04',
+        name: 'Refrigerador Inteligente Vacinas #2',
+        sector: 'Farmácia',
+        type: 'Refrigerador Medicamentos',
+        ip: '192.168.30.05',
+        mac: '00:1A:2B:FF:EE:DD',
+        status: 'Alerta',
+        description: 'Câmara fria hospitalar para armazenamento de bolsas de sangue e vacinas termolábeis.'
+      },
+      {
+        id: 'DEV-05',
+        name: 'Servidor PACS & Data Storage',
+        sector: 'Sala de Servidores',
+        type: 'Servidor Hospitalar',
+        ip: '192.168.1.100',
+        mac: '00:1A:2B:00:AA:BB',
+        status: 'Alerta',
+        description: 'Servidor central de arquivamento de imagens médicas (Tomografia, Raio-X e Ressonância).'
+      },
+      {
+        id: 'DEV-06',
+        name: 'Fechadura Biométrica Farmácia',
+        sector: 'Farmácia',
+        type: 'Controle de Acesso',
+        ip: '192.168.30.09',
+        mac: '00:1A:2B:44:55:66',
+        status: 'Online',
+        description: 'Sistema de controle de acesso por impressão digital para dispensação de entorpecentes.'
+      },
+      {
+        id: 'DEV-07',
+        name: 'Sensor Presença Enfermaria 104',
+        sector: 'Enfermaria',
+        type: 'Sensor de Presença',
+        ip: '192.168.40.18',
+        mac: '00:1A:2B:77:66:55',
+        status: 'Online',
+        description: 'Sensor de movimento para prevenção de quedas de leito de pacientes idosos.'
+      },
+      {
+        id: 'DEV-08',
+        name: 'Gateway IoT Hospitalar Core',
+        sector: 'Sala de Servidores',
+        type: 'Roteador / Gateway',
+        ip: '192.168.1.1',
+        mac: '00:1A:2B:11:00:00',
+        status: 'Alerta',
+        description: 'Concentrador de sinal e protocolo MQTT para todos os dispositivos IoT do prédio.'
+      },
+      {
+        id: 'DEV-09',
+        name: 'Respirador Pulmonar UTI-02',
+        sector: 'UTI',
+        type: 'Suporte à Vida',
+        ip: '192.168.10.46',
+        mac: '00:1A:2B:3C:4D:5F',
+        status: 'Online',
+        description: 'Ventilador mecânico com telemetria direta para a central de enfermagem.'
+      },
+      {
+        id: 'DEV-10',
+        name: 'Sensor Temperatura UTI Central',
+        sector: 'UTI',
+        type: 'Sensor de Temperatura',
+        ip: '192.168.10.50',
+        mac: '00:1A:2B:3C:4D:60',
+        status: 'Online',
+        description: 'Monitor de qualidade do ar e climatização de pressão negativa da UTI.'
+      },
+      {
+        id: 'DEV-11',
+        name: 'Foco Cirúrgico LED IoT',
+        sector: 'Centro Cirúrgico',
+        type: 'Iluminação Médica',
+        ip: '192.168.10.89',
+        mac: '00:1A:2B:99:88:78',
+        status: 'Online',
+        description: 'Sistema inteligente de iluminação operacional com controle por painel touch.'
+      },
+      {
+        id: 'DEV-12',
+        name: 'Catraca Biométrica Recepção',
+        sector: 'Recepção',
+        type: 'Controle de Acesso',
+        ip: '192.168.20.15',
+        mac: '00:1A:2B:11:22:34',
+        status: 'Online',
+        description: 'Barreira física automatizada para entrada de visitantes e acompanhantes.'
+      }
+    ];
+
+    const ALERTS_DATA = [
+      {
+        id: 'ALT-101',
+        challengeId: 1,
+        title: 'Senhas Padrão no Monitor Multiparamétrico',
+        device: 'Monitor Multiparamétrico UTI-01',
+        sector: 'UTI',
+        severity: 'Critico',
+        description: 'Interface de configuração de fábrica acessível via credenciais padrão "admin/admin".',
+        consequence: 'Invasor pode alterar parâmetros de oximetria e ECG, induzindo erro médico fatal.',
+        status: 'Ativo'
+      },
+      {
+        id: 'ALT-102',
+        challengeId: 2,
+        title: 'Firmware Desatualizado em Bomba de Infusão',
+        device: 'Bomba de Infusão Inteligente CC-03',
+        sector: 'Centro Cirúrgico',
+        severity: 'Critico',
+        description: 'Vulnerabilidade de execução remota de código (RCE) pendente de patch há 6 meses.',
+        consequence: 'Alteração remota na taxa de dosagem de anestésicos durante cirurgia.',
+        status: 'Ativo'
+      },
+      {
+        id: 'ALT-103',
+        challengeId: 3,
+        title: 'Câmera IP Transmitindo Sem Criptografia',
+        device: 'Câmera IP Dome Recepção',
+        sector: 'Recepção',
+        severity: 'Alto',
+        description: 'Stream RTSP trafegando via HTTP claro sem autenticação HTTPS/TLS.',
+        consequence: 'Vazamento de imagens de pacientes (violação LGPD) e monitoramento físico por cibercriminosos.',
+        status: 'Ativo'
+      },
+      {
+        id: 'ALT-104',
+        challengeId: 4,
+        title: 'Sensor Térmico Desconectado na Farmácia',
+        device: 'Refrigerador Inteligente Vacinas #2',
+        sector: 'Farmácia',
+        severity: 'Alto',
+        description: 'Sensor secundário offline e sem gatilho de alarme de variação de temperatura.',
+        consequence: 'Perda de bolsas de sangue e vacinas por oscilação térmica imperceptível.',
+        status: 'Ativo'
+      },
+      {
+        id: 'ALT-105',
+        challengeId: 5,
+        title: 'Rede Plana e Ausência de Backup Imutável',
+        device: 'Servidor PACS & Gateway IoT',
+        sector: 'Sala de Servidores',
+        severity: 'Critico',
+        description: 'Dispositivos de suporte à vida e exames na mesma sub-rede do Wi-Fi corporativo.',
+        consequence: 'Disseminação lateral de Ransomware e paralisação total das operações do hospital.',
+        status: 'Ativo'
+      }
+    ];
+
+    const CHALLENGES_DATA = [
+      {
+        id: 1,
+        title: 'Desafio 1: Monitor de Sinais Vitais (UTI)',
+        sector: 'UTI',
+        device: 'Monitor Multiparamétrico UTI-01',
+        icon: 'heart-pulse',
+        step1: {
+          question: 'ETAPA 1 — Identificar Vulnerabilidades: O auditor de segurança identificou que a interface web de gestão do monitor multiparamétrico da UTI utiliza as credenciais de fábrica "admin / admin". Qual é a vulnerabilidade presente?',
+          options: [
+            { text: 'A) Ausência de filtro contra surtos elétricos na tomada médica.', correct: false, exp: 'Incorreto. Essa é uma falha de infraestrutura elétrica, não de segurança da informação.' },
+            { text: 'B) Manutenção de credenciais administrativas padrão (default credentials) na rede hospitalar.', correct: true, exp: 'Correto! Credenciais padrão facilitam o acesso não autorizado por varredura de portas.' },
+            { text: 'C) Excesso de banda de dados consumida pelo sinal de eletrocardiograma.', correct: false, exp: 'Incorreto. O consumo de banda não representa uma vulnerabilidade de autenticação.' },
+            { text: 'D) Falha de física de calibração nos eletrodos de sucção.', correct: false, exp: 'Incorreto. A calibração é uma tarefa biomédica, não uma brecha cibernética.' }
+          ]
+        },
+        step2: {
+          question: 'ETAPA 2 — Reconhecer Ameaças: Qual é o risco direto de cibersegurança e o impacto clínico desta vulnerabilidade para os pacientes da UTI?',
+          options: [
+            { text: 'A) Um invasor pode desligar os monitores ou adulterar os sinais vitais exibidos, induzindo a equipe médica a aplicar medicações erradas.', correct: true, exp: 'Correto! A alteração de dados de telemetria compromete diretamente a tomada de decisão médica.' },
+            { text: 'B) Abertura automática das portas da recepção do hospital.', correct: false, exp: 'Incorreto. O monitor da UTI não controla os acessos físicos da recepção.' },
+            { text: 'C) Queima imediata da placa-mãe do dispositivo devido a malware.', correct: false, exp: 'Incorreto. O risco principal é a manipulação de dados de saúde, não o dano físico ao hardware.' },
+            { text: 'D) Atraso no envio do boleto hospitalar para o convênio.', correct: false, exp: 'Incorreto. O sistema de faturamento fica no servidor administrativo, não no monitor de sinais vitais.' }
+          ]
+        },
+        step3: {
+          question: 'ETAPA 3 — Selecionar Medidas de Proteção: Qual medida técnica deve ser adotada imediatamente para proteger o monitor multiparamétrico?',
+          options: [
+            { text: 'A) Trocar o cabo de rede Ethernet por uma conexão Wi-Fi aberta.', correct: false, exp: 'Incorreto. Redes abertas aumentam a exposição a ataques de interceptação.' },
+            { text: 'B) Desligar o equipamento durante a noite.', correct: false, exp: 'Incorreto. Equipamentos de UTI precisam operar 24/7 sem interrupções.' },
+            { text: 'C) Alterar a senha padrão por uma senha forte e complexa, implementar autenticação em dois fatores e isolar a gestão em VLAN de IoT Médica.', correct: true, exp: 'Correto! Senhas fortes e segmentação de rede (VLAN) neutralizam acessos indevidos.' },
+            { text: 'D) Instalar um antivírus doméstico gratuito diretamente no monitor.', correct: false, exp: 'Incorreto. Antivírus domésticos não são compatíveis com sistemas operacionais médicos embarcados.' }
+          ]
+        }
+      },
+      {
+        id: 2,
+        title: 'Desafio 2: Bomba de Infusão (Centro Cirúrgico)',
+        sector: 'Centro Cirúrgico',
+        device: 'Bomba de Infusão Inteligente CC-03',
+        icon: 'syringe',
+        step1: {
+          question: 'ETAPA 1 — Identificar Vulnerabilidades: A bomba de infusão do centro cirúrgico está utilizando uma versão de firmware de 2021 com vulnerabilidade RCE (Execução Remota de Código) conhecida. Qual é a falha?',
+          options: [
+            { text: 'A) Ausência de papel na impressora térmica da bomba.', correct: false, exp: 'Incorreto. Falta de suprimento físico não é vulnerabilidade cibernética.' },
+            { text: 'B) Sistema operacional embarcado desatualizado com brechas críticas conhecidas e não corrigidas.', correct: true, exp: 'Correto! Firmware defasado permite a exploração por exploits publicados na internet.' },
+            { text: 'C) Falta de suporte para carregamento por indução sem fio.', correct: false, exp: 'Incorreto. Carregamento sem fio não é requisito de cibersegurança.' },
+            { text: 'D) Uso do protocolo Bluetooth para conectar ao estetoscópio.', correct: false, exp: 'Incorreto. A vulnerabilidade descrita refere-se ao firmware desatualizado.' }
+          ]
+        },
+        step2: {
+          question: 'ETAPA 2 — Reconhecer Ameaças: Qual a consequência direta do comprometimento da bomba de infusão durante um procedimento cirúrgico?',
+          options: [
+            { text: 'A) Perda de sinal do canal de TV da sala de espera.', correct: false, exp: 'Incorreto. Sistemas cirúrgicos não possuem relação com o entretenimento da recepção.' },
+            { text: 'B) Adulteração remota da vazão de anestésicos ou medicamentos vasoativos, podendo causar superdosagem ou parada cardiorrespiratória.', correct: true, exp: 'Correto! A bomba controla a infusão direta na corrente sanguínea do paciente.' },
+            { text: 'C) Alteração do nome do hospital na etiqueta do medicamento.', correct: false, exp: 'Incorreto. O risco real envolve a vida humana durante a infusão.' },
+            { text: 'D) Desativação do ar-condicionado central do prédio.', correct: false, exp: 'Incorreto. O controle predial fica nos sistemas HVAC da engenharia.' }
+          ]
+        },
+        step3: {
+          question: 'ETAPA 3 — Selecionar Medidas de Proteção: Como a equipe de TI hospitalar deve mitigar esse risco com segurança?',
+          options: [
+            { text: 'A) Baixar uma atualização aleatória em fóruns da internet e instalar via pendrive sem testes.', correct: false, exp: 'Incorreto. Firmwares não homologados podem conter softwares maliciosos.' },
+            { text: 'B) Aplicar a atualização de firmware oficial assinada digitalmente pelo fabricante e validar a integridade em ambiente de homologação antes de reinstalar no robô cirúrgico.', correct: true, exp: 'Correto! Atualizações homologadas e assinadas garantem a segurança e estabilidade.' },
+            { text: 'C) Cobrir a bomba de infusão com uma capa de chumbo protetora.', correct: false, exp: 'Incorreto. Chumbo protege contra radiação, não contra invasões virtuais.' },
+            { text: 'D) Substituir a bomba inteligente por um soro manual sem qualquer controle.', correct: false, exp: 'Incorreto. Regredir a tecnologia sem justificativa reduz a precisão médica necessária.' }
+          ]
+        }
+      },
+      {
+        id: 3,
+        title: 'Desafio 3: Câmera de Monitoramento IP (Recepção)',
+        sector: 'Recepção',
+        device: 'Câmera IP Dome Recepção',
+        icon: 'video',
+        step1: {
+          question: 'ETAPA 1 — Identificar Vulnerabilidades: A câmera de vigilância da recepção transmite as imagens via protocolo RTSP utilizando conexões HTTP sem criptografia. Qual a vulnerabilidade?',
+          options: [
+            { text: 'A) Transmissão de vídeo em texto claro (unencrypted video stream) vulnerável à interceptação de tráfego.', correct: true, exp: 'Correto! Tráfego HTTP/RTSP puro pode ser capturado por qualquer dispositivo escutando a rede.' },
+            { text: 'B) Resolução de imagem de apenas 720p em vez de 4K.', correct: false, exp: 'Incorreto. Resolução é requisito de qualidade de imagem, não de segurança.' },
+            { text: 'C) Lente de visão noturna amarelada.', correct: false, exp: 'Incorreto. Aspectos ópticos não configuram vulnerabilidades de rede.' },
+            { text: 'D) Ângulo de visão de 90 graus.', correct: false, exp: 'Incorreto. O campo de visão é uma especificação mecânica do equipamento.' }
+          ]
+        },
+        step2: {
+          question: 'ETAPA 2 — Reconhecer Ameaças: Qual a ameaça legal e operacional decorrente do vazamento desse fluxo de vídeo?',
+          options: [
+            { text: 'A) Violação grave da LGPD por exposição da imagem de pacientes e monitoramento da rotina de segurança do hospital por criminosos.', correct: true, exp: 'Correto! O vazamento de dados biológicos/visuais violam a privacidade e expõem falhas físicas.' },
+            { text: 'B) Bloqueio imediato do fornecimento de água do hospital.', correct: false, exp: 'Incorreto. O CFTV não interfere na rede hidráulica do prédio.' },
+            { text: 'C) Aumento da temperatura dos servidores centrais.', correct: false, exp: 'Incorreto. A transmissão da câmera não sobrecarrega a climatização do Data Center.' },
+            { text: 'D) Perda do histórico de prontuários em papel.', correct: false, exp: 'Incorreto. Documentos físicos não são afetados pelo sinal da câmera IP.' }
+          ]
+        },
+        step3: {
+          question: 'ETAPA 3 — Selecionar Medidas de Proteção: Qual a configuração correta para proteger as câmeras de vigilância IP?',
+          options: [
+            { text: 'A) Liberar o acesso à câmera para qualquer IP da internet sem senha.', correct: false, exp: 'Incorreto. Isso exporia a câmera a ataques mundiais automatizados.' },
+            { text: 'B) Encaminhar todas as fotos da câmera para as redes sociais do hospital.', correct: false, exp: 'Incorreto. Redes sociais são públicas e amplificariam a violação de privacidade.' },
+            { text: 'C) Criptografar a transmissão utilizando RTSPS/HTTPS (TLS 1.3), restringir o acesso à VLAN exclusiva de CFTV e bloquear acesso externo via internet.', correct: true, exp: 'Correto! Criptografia forte e redes exclusivas de CFTV impedem a captura de sinal.' },
+            { text: 'D) Desligar todas as câmeras de segurança durante o dia.', correct: false, exp: 'Incorreto. A vigilância patrimonial e de pacientes precisa estar ativa 24 horas.' }
+          ]
+        }
+      },
+      {
+        id: 4,
+        title: 'Desafio 4: Refrigerador de Vacinas (Farmácia)',
+        sector: 'Farmácia',
+        device: 'Refrigerador Inteligente Vacinas #2',
+        icon: 'thermometer-snowflake',
+        step1: {
+          question: 'ETAPA 1 — Identificar Vulnerabilidades: O refrigerador inteligente da farmácia teve seu sensor térmico de backup desconectado e o serviço de envio de alertas MQTT desativado. Qual é a vulnerabilidade?',
+          options: [
+            { text: 'A) Falta de prateleiras de vidro temperado no interior da geladeira.', correct: false, exp: 'Incorreto. O material da prateleira não é uma falha cibernética ou de telemetria.' },
+            { text: 'B) Ausência de redundância de sensores e inativação do sistema de telemetria de alerta em tempo real.', correct: true, exp: 'Correto! Sem alertas ativas ou redundância, oscilações de temperatura passam despercebidas.' },
+            { text: 'C) Porta da geladeira pintada na cor cinza em vez de branco.', correct: false, exp: 'Incorreto. A cor do eletrodoméstico é estritamente estética.' },
+            { text: 'D) Uso de gás refrigerante ecológico no compressor.', correct: false, exp: 'Incorreto. O tipo de gás é um padrão ambiental, não uma vulnerabilidade.' }
+          ]
+        },
+        step2: {
+          question: 'ETAPA 2 — Reconhecer Ameaças: Qual a ameaça direta à assistência médica caso ocorra uma falha de refrigeração não detectada?',
+          options: [
+            { text: 'A) Queima dos computadores da recepção.', correct: false, exp: 'Incorreto. A geladeira da farmácia não causa curtos em computadores distantes.' },
+            { text: 'B) Perda irreversível de medicamentos de alto custo, imunobiológicos e vacinas por degradação térmica, inutilizando o estoque de salvamento.', correct: true, exp: 'Correto! Termolábeis perdem eficácia fora da faixa ideal (+2°C a +8°C).' },
+            { text: 'C) Modificação do sistema de chamadas de emergência.', correct: false, exp: 'Incorreto. O controle de enfermagem é independente do refrigerador.' },
+            { text: 'D) Desativação do sistema de elevadores do hospital.', correct: false, exp: 'Incorreto. O elevador possui painel trifásico separado.' }
+          ]
+        },
+        step3: {
+          question: 'ETAPA 3 — Selecionar Medidas de Proteção: Como garantir a resiliência e integridade do armazenamento térmico de medicamentos?',
+          options: [
+            { text: 'A) Mandar um funcionário abrir a geladeira a cada 5 minutos para checar com termômetro manual.', correct: false, exp: 'Incorreto. Abrir a geladeira repetidamente piora a oscilação de temperatura.' },
+            { text: 'B) Reconectar o sensor secundário, habilitar o protocolo de mensageria MQTT criptografado via TLS e configurar alertas imediatos no painel da TI.', correct: true, exp: 'Correto! Monitoramento contínuo redundante e criptografado garante ação preventiva rápida.' },
+            { text: 'C) Aumentar a temperatura do refrigerador para 25°C.', correct: false, exp: 'Incorreto. 25°C estragaria vacinas que necessitam de refrigeração contínua.' },
+            { text: 'D) Remover todos os alarmes sonoros para não incomodar a equipe.', correct: false, exp: 'Incorreto. A desativação de alarmes agrava o risco de perdas de insumos.' }
+          ]
+        }
+      },
+      {
+        id: 5,
+        title: 'Desafio 5: Servidores & Data Center (PACS / HIS)',
+        sector: 'Sala de Servidores',
+        device: 'Servidor PACS & Gateway IoT',
+        icon: 'server',
+        step1: {
+          question: 'ETAPA 1 — Identificar Vulnerabilidades: O servidor de exames PACS e o Gateway IoT hospitalar estão instalados na mesma rede IP sem segmentação (rede plana) usada por visitantes e sem rotina de backup imutável. Qual a falha?',
+          options: [
+            { text: 'A) Falta de um monitor secundário acoplado ao rack do servidor.', correct: false, exp: 'Incorreto. Servidores operam normalmente sem monitores dedicados (headless).' },
+            { text: 'B) Ausência de microsegmentação de rede (VLANs dedicadas) e falta de backups offline/imutáveis contra ataques.', correct: true, exp: 'Correto! Redes planas permitem movimentação lateral ilimitada para malwares.' },
+            { text: 'C) Cabos de rede da cor amarela em vez de azul.', correct: false, exp: 'Incorreto. A cor da capa do cabo UTP não influencia a segurança lógica.' },
+            { text: 'D) Uso do sistema operacional Linux nos servidores.', correct: false, exp: 'Incorreto. Linux é amplamente utilizado e seguro quando corretamente configurado.' }
+          ]
+        },
+        step2: {
+          question: 'ETAPA 2 — Reconhecer Ameaças: Qual o risco catastrófico para a instituição em caso de um ataque de Ransomware nessa arquitetura?',
+          options: [
+            { text: 'A) Disseminação lateral do vírus da rede Wi-Fi para os servidores médicos, criptografando prontuários e paralisando todos os exames e cirurgias do hospital.', correct: true, exp: 'Correto! Ransomware em redes planas criptografa storages centrais, paralisando operações.' },
+            { text: 'B) Quebra física dos vidros da fachada do hospital.', correct: false, exp: 'Incorreto. Ransomware é um software malicioso que afeta dados lógicos, não janelas.' },
+            { text: 'C) Troca do canal de rádio da sala de cirurgia.', correct: false, exp: 'Incorreto. O risco real envolve a inoperância do sistema hospitalar completo.' },
+            { text: 'D) Aumento do valor da tarifa de energia elétrica.', correct: false, exp: 'Incorreto. Tarifas elétricas dependem da concessionária local.' }
+          ]
+        },
+        step3: {
+          question: 'ETAPA 3 — Selecionar Medidas de Proteção: Qual plano de mitigação e resiliência arquitetural deve ser implantado imediatamente?',
+          options: [
+            { text: 'A) Copiar os arquivos importantes para um pen-drive comum e deixá-lo conectado no servidor.', correct: false, exp: 'Incorreto. Pendrives conectados continuamente também são infectados por Ransomware.' },
+            { text: 'B) Implementar microsegmentação de rede com Zero-Trust Firewalls, isolando a rede IoT dos servidores PACS, e configurar plano de backup imutável 3-2-1.', correct: true, exp: 'Correto! Zero-Trust e política de backup 3-2-1 impedem movimentação lateral e garantem recuperação.' },
+            { text: 'C) Desconectar o hospital inteiro da energia elétrica por uma semana.', correct: false, exp: 'Incorreto. Um hospital necessita de energia contínua para salvar vidas.' },
+            { text: 'D) Desativar o firewall para acelerar o acesso dos visitantes ao Wi-Fi.', correct: false, exp: 'Incorreto. Desativar o firewall anula a primeira linha de defesa cibernética.' }
+          ]
+        }
+      }
+    ];
+
+    // GLOBAL GAME STATE
+    let gameState = {
+      score: 0,
+      activeTab: 'dashboard',
+      selectedSectorId: 'UTI',
+      selectedChallengeId: 1,
+      alerts: [...ALERTS_DATA],
+      sectors: [...SECTORS_DATA],
+      devices: [...DEVICES_DATA],
+      challenges: CHALLENGES_DATA.map(c => ({
+        ...c,
+        currentStep: 1,
+        step1Done: false,
+        step2Done: false,
+        step3Done: false,
+        isCompleted: false,
+        scoreEarned: 0,
+        selectedOptions: { 1: null, 2: null, 3: null }
+      })),
+      logs: [
+        { time: '10:42:01', text: 'Tentativa de acesso via porta 80 no Monitor UTI-01 detectada.', type: 'warn' },
+        { time: '10:38:15', text: 'Firmware desatualizado detectado na Bomba CC-03.', type: 'danger' },
+        { time: '10:20:00', text: 'Sistema MediGuard IoT iniciado com sucesso.', type: 'info' }
+      ]
+    };
+
+    let telemetryChartInstance = null;
+
+    // ==========================================
+    // INITIALIZATION & TAB SWITCHING
+    // ==========================================
+
+    window.onload = function() {
+      // Set current date in report
+      const now = new Date();
+      document.getElementById('reportDate').innerText = now.toLocaleDateString('pt-BR') + ' - ' + now.toLocaleTimeString('pt-BR');
+
+      // Initialize Lucide icons
+      lucide.createIcons();
+
+      // Setup Mobile Toggle
+      document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.toggle('hidden');
+      });
+
+      // Render Initial Components
+      initTelemetryChart();
+      renderDashboard();
+      renderBlueprint();
+      renderInventory();
+      renderAlerts();
+      renderMission();
+      renderReport();
+
+      // Search & Filters Setup
+      document.getElementById('deviceSearchInput').addEventListener('input', renderInventory);
+      document.getElementById('deviceSectorFilter').addEventListener('change', renderInventory);
+      document.getElementById('deviceStatusFilter').addEventListener('change', renderInventory);
+    };
+
+    function switchTab(tabId) {
+      gameState.activeTab = tabId;
+
+      // Update Nav Buttons
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('bg-[#397BC8]', 'text-white', 'shadow-md');
+        btn.classList.add('text-slate-400', 'hover:text-white', 'hover:bg-[#19334C]');
+      });
+
+      const activeBtn = document.getElementById(`nav-${tabId}`);
+      if (activeBtn) {
+        activeBtn.classList.remove('text-slate-400', 'hover:text-white', 'hover:bg-[#19334C]');
+        activeBtn.classList.add('bg-[#397BC8]', 'text-white', 'shadow-md');
+      }
+
+      // Hide all contents
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
+
+      // Show target tab
+      const targetContent = document.getElementById(`tab-${tabId}`);
+      if (targetContent) targetContent.classList.remove('hidden');
+
+      // Update Titles
+      const pageTitle = document.getElementById('pageTitle');
+      const pageSubtitle = document.getElementById('pageSubtitle');
+
+      switch (tabId) {
+        case 'dashboard':
+          pageTitle.innerText = 'Painel Principal de Cibersegurança';
+          pageSubtitle.innerText = 'Monitoramento em tempo real dos sistemas de IoT médico hospitalares';
+          break;
+        case 'environments':
+          pageTitle.innerText = 'Ambientes Hospitalares — Planta Interativa';
+          pageSubtitle.innerText = 'Inspecione visualmente os setores e seus respectivos equipamentos de suporte';
+          break;
+        case 'inventory':
+          pageTitle.innerText = 'Inventário de Dispositivos IoT Médicos';
+          pageSubtitle.innerText = 'Catálogo completo e filtros de equipamentos de saúde conectados';
+          break;
+        case 'alerts':
+          pageTitle.innerText = 'Central de Alertas & Incidentes';
+          pageSubtitle.innerText = 'Ocorrências técnicas de segurança da informação identificadas pelo IDS';
+          break;
+        case 'mission':
+          pageTitle.innerText = 'Missão Interativa — Simulador de Resposta';
+          pageSubtitle.innerText = 'Resolva os desafios de cibersegurança divididos em 3 etapas para blindar o hospital';
+          break;
+        case 'report':
+          pageTitle.innerText = 'Relatório Final de Auditoria de Cibersegurança';
+          pageSubtitle.innerText = 'Sumário executivo de desempenho e medidas de proteção adotadas';
+          renderReport();
+          break;
+      }
+
+      // Re-initialize icons after DOM view switch
+      lucide.createIcons();
+    }
+
+    // ==========================================
+    // METRICS & SCORE COMPUTATION
+    // ==========================================
+
+    function calculateMetrics() {
+      const activeAlertsCount = gameState.alerts.filter(a => a.status === 'Ativo').length;
+      const mitigatedAlertsCount = gameState.alerts.filter(a => a.status === 'Mitigado').length;
+
+      // Total points = 15 (5 challenges * 3 steps)
+      const totalScore = gameState.challenges.reduce((sum, c) => sum + c.scoreEarned, 0);
+      gameState.score = totalScore;
+
+      // Security Index: 35% base + (score/15) * 65%
+      const securityIndex = Math.min(100, Math.round(35 + (totalScore / 15) * 65));
+
+      return {
+        activeAlerts: activeAlertsCount,
+        mitigatedAlerts: mitigatedAlertsCount,
+        totalScore,
+        securityIndex
+      };
+    }
+
+    function updateGlobalBadges() {
+      const metrics = calculateMetrics();
+
+      // Nav Badge
+      const alertBadge = document.getElementById('navAlertBadge');
+      if (alertBadge) {
+        alertBadge.innerText = metrics.activeAlerts;
+        if (metrics.activeAlerts === 0) {
+          alertBadge.classList.remove('bg-red-600');
+          alertBadge.classList.add('bg-teal-600');
+        } else {
+          alertBadge.classList.remove('bg-teal-600');
+          alertBadge.classList.add('bg-red-600');
+        }
+      }
+
+      // Sidebar Progress
+      const sidebarProgressTxt = document.getElementById('sidebarProgressTxt');
+      const sidebarProgressBar = document.getElementById('sidebarProgressBar');
+      const sidebarSecurityIndex = document.getElementById('sidebarSecurityIndex');
+
+      if (sidebarProgressTxt) sidebarProgressTxt.innerText = `${metrics.totalScore} / 15 pts`;
+      if (sidebarProgressBar) sidebarProgressBar.style.width = `${(metrics.totalScore / 15) * 100}%`;
+      if (sidebarSecurityIndex) {
+        sidebarSecurityIndex.innerText = `${metrics.securityIndex}%`;
+        if (metrics.securityIndex > 80) {
+          sidebarSecurityIndex.className = 'text-[#269D99] font-bold';
+        } else if (metrics.securityIndex > 50) {
+          sidebarSecurityIndex.className = 'text-amber-400 font-bold';
+        } else {
+          sidebarSecurityIndex.className = 'text-red-400 font-bold';
+        }
+      }
+
+      // Dashboard Cards
+      const dashActiveAlerts = document.getElementById('dashActiveAlerts');
+      const dashMitigatedAlerts = document.getElementById('dashMitigatedAlerts');
+      const dashSecurityIndex = document.getElementById('dashSecurityIndex');
+      const dashSecurityLabel = document.getElementById('dashSecurityLabel');
+      const dashNetworkState = document.getElementById('dashNetworkState');
+      const statusDot = document.getElementById('statusDot');
+      const statusPing = document.getElementById('statusPing');
+      const networkStatusText = document.getElementById('networkStatusText');
+
+      if (dashActiveAlerts) dashActiveAlerts.innerText = metrics.activeAlerts;
+      if (dashMitigatedAlerts) dashMitigatedAlerts.innerText = metrics.mitigatedAlerts;
+      if (dashSecurityIndex) dashSecurityIndex.innerText = `${metrics.securityIndex}%`;
+
+      if (dashSecurityLabel) {
+        if (metrics.securityIndex >= 90) {
+          dashSecurityLabel.innerText = 'Proteção Excelente';
+          dashSecurityLabel.className = 'text-[11px] text-[#269D99] font-medium mt-1';
+        } else if (metrics.securityIndex >= 70) {
+          dashSecurityLabel.innerText = 'Nível Seguro / Intermediário';
+          dashSecurityLabel.className = 'text-[11px] text-blue-600 font-medium mt-1';
+        } else {
+          dashSecurityLabel.innerText = 'Nível Alerta Crítico';
+          dashSecurityLabel.className = 'text-[11px] text-amber-600 font-medium mt-1';
+        }
+      }
+
+      if (dashNetworkState) {
+        if (metrics.mitigatedAlerts >= 4) {
+          dashNetworkState.innerText = 'Rede Segmentada e Blindada';
+        } else {
+          dashNetworkState.innerText = 'Segmentação Parcial';
+        }
+      }
+
+      if (networkStatusText) {
+        if (metrics.activeAlerts === 0) {
+          networkStatusText.innerText = 'Hospital Protegido';
+          statusDot.className = 'relative inline-flex rounded-full h-2.5 w-2.5 bg-teal-500';
+          statusPing.className = 'animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75';
+        } else {
+          networkStatusText.innerText = 'Alertas Ativos Detectados';
+          statusDot.className = 'relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500';
+          statusPing.className = 'animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75';
+        }
+      }
+
+      // Mission Banner Score
+      const missionScoreDisplay = document.getElementById('missionScoreDisplay');
+      if (missionScoreDisplay) missionScoreDisplay.innerText = `${metrics.totalScore} / 15 pts`;
+    }
+
+    // ==========================================
+    // CHART.JS TELEMETRY INITIALIZATION
+    // ==========================================
+
+    function initTelemetryChart() {
+      const ctx = document.getElementById('telemetryChart').getContext('2d');
+      telemetryChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00'],
+          datasets: [
+            {
+              label: 'Tráfego Sanificado (MB/s)',
+              data: [12, 19, 15, 25, 22, 30, 28, 35],
+              borderColor: '#269D99',
+              backgroundColor: 'rgba(38, 157, 153, 0.1)',
+              fill: true,
+              tension: 0.3,
+              borderWidth: 2
+            },
+            {
+              label: 'Anomalias & Varreduras Bloqueadas',
+              data: [8, 12, 18, 10, 5, 4, 3, 1],
+              borderColor: '#DC2626',
+              backgroundColor: 'rgba(220, 38, 38, 0.05)',
+              borderDash: [5, 5],
+              fill: true,
+              tension: 0.3,
+              borderWidth: 2
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: { font: { family: 'Manrope', size: 11 } }
+            }
+          },
+          scales: {
+            y: {
+              grid: { color: '#F3F6FA' },
+              ticks: { font: { family: 'Manrope', size: 10 } }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { font: { family: 'Manrope', size: 10 } }
+            }
+          }
+        }
+      });
+    }
+
+    // ==========================================
+    // RENDER: DASHBOARD
+    // ==========================================
+
+    function renderDashboard() {
+      updateGlobalBadges();
+
+      // Render Sector Cards in Dashboard
+      const dashSectorCards = document.getElementById('dashSectorCards');
+      if (!dashSectorCards) return;
+
+      dashSectorCards.innerHTML = gameState.sectors.map(sec => {
+        // Check if sector alert has been mitigated
+        const sectorChallenge = gameState.challenges.find(c => c.sector === sec.id);
+        const isSectorSafe = sectorChallenge ? sectorChallenge.isCompleted : false;
+
+        const badgeClass = isSectorSafe ? 'bg-teal-100 text-teal-800' : 'bg-red-100 text-red-800';
+        const statusTxt = isSectorSafe ? 'Protegido' : 'Vulnerável';
+
+        return `
+          <div onclick="switchTab('environments'); selectSector('${sec.id}');" class="p-3 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-slate-300 transition-all cursor-pointer flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <i data-lucide="${sec.icon}" class="w-4 h-4 text-[#397BC8]"></i>
+              <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded ${badgeClass}">${statusTxt}</span>
+            </div>
+            <div class="mt-2">
+              <h4 class="font-bold text-xs text-[#101E30] truncate">${sec.id}</h4>
+              <p class="text-[10px] text-slate-500">${sec.deviceCount} dispositivos</p>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Render Logs Feed
+      const recentLogsFeed = document.getElementById('recentLogsFeed');
+      if (recentLogsFeed) {
+        recentLogsFeed.innerHTML = gameState.logs.map(log => {
+          let dotColor = 'bg-blue-500';
+          if (log.type === 'danger') dotColor = 'bg-red-500';
+          if (log.type === 'warn') dotColor = 'bg-amber-500';
+          if (log.type === 'success') dotColor = 'bg-teal-500';
+
+          return `
+            <div class="flex items-start space-x-2 p-2 rounded bg-slate-50 border border-slate-100">
+              <span class="w-2 h-2 rounded-full ${dotColor} mt-1 shrink-0"></span>
+              <div>
+                <span class="font-mono text-[10px] text-slate-400 block">${log.time}</span>
+                <p class="text-slate-700 leading-tight">${log.text}</p>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      lucide.createIcons();
+    }
+
+    // ==========================================
+    // RENDER: ENVIRONMENTS (PLANTA INTERATIVA)
+    // ==========================================
+
+    function renderBlueprint() {
+      const blueprintGrid = document.getElementById('blueprintGrid');
+      if (!blueprintGrid) return;
+
+      blueprintGrid.innerHTML = gameState.sectors.map(sec => {
+        const sectorChallenge = gameState.challenges.find(c => c.sector === sec.id);
+        const isSafe = sectorChallenge ? sectorChallenge.isCompleted : (sec.id === 'Enfermaria');
+        const isSelected = gameState.selectedSectorId === sec.id;
+
+        const borderStyle = isSelected ? 'ring-2 ring-[#397BC8] bg-[#19334C]' : 'bg-[#101E30]/80 hover:bg-[#19334C]';
+        const statusBadge = isSafe 
+          ? '<span class="text-[10px] font-bold text-[#269D99] bg-[#269D99]/20 px-2 py-0.5 rounded border border-[#269D99]/40">PROTEGIDO</span>'
+          : '<span class="text-[10px] font-bold text-red-400 bg-red-950/50 px-2 py-0.5 rounded border border-red-800/40">RISCO DETECTADO</span>';
+
+        return `
+          <div onclick="selectSector('${sec.id}')" class="p-4 rounded-xl border border-[#19334C] transition-all cursor-pointer ${borderStyle} flex flex-col justify-between space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="w-8 h-8 rounded-lg bg-[#397BC8]/20 text-[#397BC8] flex items-center justify-center">
+                <i data-lucide="${sec.icon}" class="w-4 h-4"></i>
+              </div>
+              ${statusBadge}
+            </div>
+            <div>
+              <h4 class="font-extrabold text-sm text-white">${sec.name}</h4>
+              <p class="text-[11px] text-slate-400 line-clamp-2 mt-1">${sec.description}</p>
+            </div>
+            <div class="text-[10px] font-mono text-slate-400 flex items-center justify-between pt-2 border-t border-[#19334C]">
+              <span>IoT Instalações: ${sec.deviceCount}</span>
+              <span class="text-[#397BC8]">Inspecionar &rarr;</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      renderSectorDetail(gameState.selectedSectorId);
+      lucide.createIcons();
+    }
+
+    function selectSector(sectorId) {
+      gameState.selectedSectorId = sectorId;
+      renderBlueprint();
+    }
+
+    function renderSectorDetail(sectorId) {
+      const sectorDetailCard = document.getElementById('sectorDetailCard');
+      if (!sectorDetailCard) return;
+
+      const sec = gameState.sectors.find(s => s.id === sectorId);
+      if (!sec) return;
+
+      const sectorChallenge = gameState.challenges.find(c => c.sector === sec.id);
+      const isSafe = sectorChallenge ? sectorChallenge.isCompleted : (sec.id === 'Enfermaria');
+
+      const devices = gameState.devices.filter(d => d.sector === sec.id);
+      const alerts = gameState.alerts.filter(a => a.sector === sec.id);
+
+      sectorDetailCard.innerHTML = `
+        <div class="space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+            <div>
+              <span class="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider">Setor Selecionado</span>
+              <h3 class="font-extrabold text-lg text-[#101E30]">${sec.name}</h3>
+            </div>
+            <span class="px-2.5 py-1 rounded-full text-xs font-bold ${isSafe ? 'bg-teal-100 text-[#269D99]' : 'bg-red-100 text-red-700'}">
+              ${isSafe ? 'Operação Segura' : 'Vulnerabilidade Ativa'}
+            </span>
+          </div>
+
+          <p class="text-xs text-slate-600 leading-relaxed">${sec.description}</p>
+
+          <!-- INSTALLED DEVICES -->
+          <div class="space-y-2">
+            <h4 class="text-xs font-bold text-[#101E30] uppercase tracking-wider">Dispositivos IoT no Setor (${devices.length})</h4>
+            <div class="space-y-1.5">
+              ${devices.map(d => {
+                const devSafe = d.status === 'Online' || isSafe;
+                return `
+                  <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs flex items-center justify-between">
+                    <div>
+                      <span class="font-bold text-[#101E30] block">${d.name}</span>
+                      <span class="font-mono text-[10px] text-slate-400">IP: ${d.ip} | MAC: ${d.mac}</span>
+                    </div>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold ${devSafe ? 'bg-teal-100 text-teal-800' : 'bg-amber-100 text-amber-800'}">
+                      ${devSafe ? 'Online' : 'Alerta'}
+                    </span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <!-- RELATED ALERTS -->
+          <div class="space-y-2">
+            <h4 class="text-xs font-bold text-[#101E30] uppercase tracking-wider">Ocorrências do Setor</h4>
+            ${alerts.length === 0 ? `
+              <p class="text-xs text-slate-400 bg-slate-50 p-3 rounded-lg border border-slate-200">Nenhum alerta crítico ativo para este setor.</p>
+            ` : alerts.map(a => `
+              <div class="p-3 rounded-lg bg-red-50 border border-red-200 text-xs space-y-1">
+                <div class="flex items-center justify-between font-bold text-red-800">
+                  <span>${a.title}</span>
+                  <span class="text-[10px] uppercase bg-red-200 text-red-900 px-1.5 py-0.5 rounded">${a.severity}</span>
+                </div>
+                <p class="text-[11px] text-red-700">${a.description}</p>
+                <div class="pt-2">
+                  <button onclick="goToMission(${a.challengeId})" class="w-full py-1.5 bg-red-700 hover:bg-red-800 text-white rounded text-[11px] font-bold transition-all">
+                    Mitigar no Simulador &rarr;
+                  </button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+
+      lucide.createIcons();
+    }
+
+    function goToMission(challengeId) {
+      gameState.selectedChallengeId = challengeId;
+      switchTab('mission');
+      renderMission();
+    }
+
+    // ==========================================
+    // RENDER: INVENTORY (DISPOSITIVOS IOT)
+    // ==========================================
+
+    function renderInventory() {
+      const devicesGrid = document.getElementById('devicesGrid');
+      if (!devicesGrid) return;
+
+      const searchVal = document.getElementById('deviceSearchInput').value.toLowerCase();
+      const sectorVal = document.getElementById('deviceSectorFilter').value;
+      const statusVal = document.getElementById('deviceStatusFilter').value;
+
+      const filtered = gameState.devices.filter(dev => {
+        const matchesSearch = dev.name.toLowerCase().includes(searchVal) || dev.ip.toLowerCase().includes(searchVal);
+        const matchesSector = sectorVal === 'ALL' || dev.sector === sectorVal;
+
+        // Check dynamic status
+        const secChallenge = gameState.challenges.find(c => c.sector === dev.sector);
+        const effectiveStatus = (secChallenge && secChallenge.isCompleted) ? 'Online' : dev.status;
+
+        const matchesStatus = statusVal === 'ALL' || effectiveStatus === statusVal;
+
+        return matchesSearch && matchesSector && matchesStatus;
+      });
+
+      if (filtered.length === 0) {
+        devicesGrid.innerHTML = `
+          <div class="col-span-full py-12 text-center text-slate-400 bg-white rounded-xl border border-slate-200">
+            <i data-lucide="cpu" class="w-10 h-10 mx-auto text-slate-300"></i>
+            <p class="text-xs mt-2">Nenhum equipamento encontrado com os filtros selecionados.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      devicesGrid.innerHTML = filtered.map(dev => {
+        const secChallenge = gameState.challenges.find(c => c.sector === dev.sector);
+        const isSafe = secChallenge ? secChallenge.isCompleted : (dev.status === 'Online');
+
+        const badgeClass = isSafe ? 'bg-teal-100 text-[#269D99]' : 'bg-amber-100 text-amber-800';
+        const statusLabel = isSafe ? 'Online / Seguro' : 'Alerta de Segurança';
+
+        return `
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between hover:border-slate-300 transition-all space-y-3">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-bold">${dev.id}</span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded ${badgeClass}">${statusLabel}</span>
+              </div>
+              <h4 class="font-extrabold text-sm text-[#101E30]">${dev.name}</h4>
+              <p class="text-xs text-[#397BC8] font-semibold mt-0.5">${dev.type}</p>
+              <p class="text-xs text-slate-500 mt-2 leading-relaxed">${dev.description}</p>
+            </div>
+
+            <div class="pt-3 border-t border-slate-100 font-mono text-[11px] text-slate-500 space-y-1">
+              <div class="flex justify-between">
+                <span>Setor:</span>
+                <span class="font-semibold text-slate-700">${dev.sector}</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Endereço IP:</span>
+                <span class="text-slate-700">${dev.ip}</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Endereço MAC:</span>
+                <span class="text-slate-700">${dev.mac}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    // ==========================================
+    // RENDER: CENTRAL DE ALERTAS
+    // ==========================================
+
+    let currentAlertFilter = 'ALL';
+
+    function filterAlerts(severity) {
+      currentAlertFilter = severity;
+
+      document.querySelectorAll('.alert-filter-btn').forEach(btn => {
+        btn.classList.remove('bg-[#101E30]', 'text-white');
+        btn.classList.add('bg-slate-100', 'text-slate-600');
+      });
+
+      event.target.classList.remove('bg-slate-100', 'text-slate-600');
+      event.target.classList.add('bg-[#101E30]', 'text-white');
+
+      renderAlerts();
+    }
+
+    function renderAlerts() {
+      const container = document.getElementById('alertsListContainer');
+      if (!container) return;
+
+      const filtered = gameState.alerts.filter(a => {
+        if (currentAlertFilter === 'ALL') return true;
+        if (currentAlertFilter === 'Mitigado') return a.status === 'Mitigado';
+        return a.severity === currentAlertFilter && a.status === 'Ativo';
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white p-8 rounded-xl border border-slate-200 text-center text-slate-400">
+            <i data-lucide="check-circle-2" class="w-10 h-10 mx-auto text-[#269D99]"></i>
+            <p class="text-xs mt-2 font-semibold">Nenhum alerta nesta categoria no momento.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = filtered.map(a => {
+        const isMitigated = a.status === 'Mitigado';
+
+        let sevBadge = 'bg-red-100 text-red-800 border-red-300';
+        if (a.severity === 'Alto') sevBadge = 'bg-amber-100 text-amber-800 border-amber-300';
+        if (a.severity === 'Medio') sevBadge = 'bg-blue-100 text-blue-800 border-blue-300';
+
+        return `
+          <div class="bg-white p-5 rounded-xl border ${isMitigated ? 'border-teal-200 bg-teal-50/20' : 'border-slate-200'} shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div class="space-y-1.5 flex-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="text-xs font-mono font-bold px-2 py-0.5 rounded border ${sevBadge}">
+                  ${a.severity}
+                </span>
+                <span class="text-xs font-mono bg-slate-100 text-slate-600 px-2 py-0.5 rounded">ID: ${a.id}</span>
+                <span class="text-xs font-semibold text-[#397BC8]">${a.sector}</span>
+                ${isMitigated ? '<span class="text-xs font-bold px-2 py-0.5 rounded bg-teal-100 text-[#269D99]">MITIGADO</span>' : ''}
+              </div>
+
+              <h4 class="font-extrabold text-base text-[#101E30]">${a.title}</h4>
+              <p class="text-xs text-slate-600"><strong>Equipamento Afetado:</strong> ${a.device}</p>
+              <p class="text-xs text-slate-500 leading-relaxed"><strong>Problema:</strong> ${a.description}</p>
+              <p class="text-xs text-red-600 font-medium"><strong>Consequência Operacional:</strong> ${a.consequence}</p>
+            </div>
+
+            <div class="w-full md:w-auto shrink-0">
+              ${isMitigated ? `
+                <div class="px-4 py-2 bg-teal-50 border border-teal-200 text-[#269D99] rounded-lg text-xs font-bold flex items-center space-x-2">
+                  <i data-lucide="check" class="w-4 h-4"></i>
+                  <span>Alerta Corrigido</span>
+                </div>
+              ` : `
+                <button onclick="goToMission(${a.challengeId})" class="w-full md:w-auto px-4 py-2.5 bg-[#397BC8] hover:bg-[#19334C] text-white text-xs font-bold rounded-lg shadow-sm transition-all flex items-center justify-center space-x-2">
+                  <i data-lucide="shield-check" class="w-4 h-4"></i>
+                  <span>Resolver no Simulador</span>
+                </button>
+              `}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    // ==========================================
+    // RENDER: MISSÃO INTERATIVA (SIMULADOR DE RESPOSTA)
+    // ==========================================
+
+    function renderMission() {
+      // Mission Challenge Selector Tabs
+      const missionTabButtons = document.getElementById('missionTabButtons');
+      if (!missionTabButtons) return;
+
+      missionTabButtons.innerHTML = gameState.challenges.map(c => {
+        const isSelected = gameState.selectedChallengeId === c.id;
+        const isDone = c.isCompleted;
+
+        let btnClass = isSelected 
+          ? 'bg-[#397BC8] text-white shadow-md' 
+          : 'bg-[#0C1624] text-slate-300 hover:bg-[#19334C] hover:text-white';
+
+        return `
+          <button onclick="selectChallenge(${c.id})" class="px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center space-x-2 border border-[#19334C] ${btnClass}">
+            <i data-lucide="${c.icon}" class="w-4 h-4"></i>
+            <span>Desafio ${c.id}</span>
+            ${isDone ? '<i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-[#269D99]"></i>' : ''}
+          </button>
+        `;
+      }).join('');
+
+      renderChallengeWizard();
+      lucide.createIcons();
+    }
+
+    function selectChallenge(id) {
+      gameState.selectedChallengeId = id;
+      renderMission();
+    }
+
+    function renderChallengeWizard() {
+      const box = document.getElementById('challengeWizardBox');
+      if (!box) return;
+
+      const challenge = gameState.challenges.find(c => c.id === gameState.selectedChallengeId);
+      if (!challenge) return;
+
+      const step = challenge.currentStep; // 1, 2, or 3
+      const stepData = challenge[`step${step}`];
+
+      box.innerHTML = `
+        <!-- HEADER CHALLENGE -->
+        <div class="flex flex-col md:flex-row justify-between md:items-center gap-4 border-b border-slate-200 pb-4">
+          <div>
+            <span class="text-xs font-mono font-bold text-[#397BC8] uppercase">${challenge.sector} — ${challenge.device}</span>
+            <h3 class="text-lg font-black text-[#101E30] mt-0.5">${challenge.title}</h3>
+          </div>
+          <div class="flex items-center space-x-2 font-mono text-xs">
+            <span class="px-2.5 py-1 rounded bg-slate-100 text-slate-700 font-bold">Pontuação Ganha: ${challenge.scoreEarned} / 3 pts</span>
+          </div>
+        </div>
+
+        <!-- 3-STEP WIZARD PROGRESS BAR -->
+        <div class="grid grid-cols-3 gap-2 text-center text-xs font-bold font-mono">
+          <div class="p-2.5 rounded-lg border ${step === 1 ? 'border-[#397BC8] bg-blue-50 text-[#397BC8]' : (challenge.step1Done ? 'bg-teal-50 border-teal-300 text-[#269D99]' : 'bg-slate-50 border-slate-200 text-slate-400')}">
+            1. Identificar Vulnerabilidade ${challenge.step1Done ? '✓' : ''}
+          </div>
+          <div class="p-2.5 rounded-lg border ${step === 2 ? 'border-[#397BC8] bg-blue-50 text-[#397BC8]' : (challenge.step2Done ? 'bg-teal-50 border-teal-300 text-[#269D99]' : 'bg-slate-50 border-slate-200 text-slate-400')}">
+            2. Reconhecer Ameaça ${challenge.step2Done ? '✓' : ''}
+          </div>
+          <div class="p-2.5 rounded-lg border ${step === 3 ? 'border-[#397BC8] bg-blue-50 text-[#397BC8]' : (challenge.step3Done ? 'bg-teal-50 border-teal-300 text-[#269D99]' : 'bg-slate-50 border-slate-200 text-slate-400')}">
+            3. Medida de Proteção ${challenge.step3Done ? '✓' : ''}
+          </div>
+        </div>
+
+        ${challenge.isCompleted ? `
+          <!-- COMPLETED CHALLENGE BANNER -->
+          <div class="bg-teal-50 border border-teal-200 p-6 rounded-xl text-center space-y-3">
+            <div class="w-12 h-12 rounded-full bg-[#269D99] text-white flex items-center justify-center mx-auto shadow-md">
+              <i data-lucide="check" class="w-6 h-6"></i>
+            </div>
+            <h4 class="font-extrabold text-lg text-teal-900">Desafio Concluído com Sucesso!</h4>
+            <p class="text-xs text-teal-800 max-w-lg mx-auto">
+              Você completou todas as 3 etapas obrigatórias deste cenário hospitalar. A vulnerabilidade foi mitigada e a pontuação máxima de 3 pontos foi adicionada ao seu relatório.
+            </p>
+            <div class="pt-2 flex justify-center gap-3">
+              <button onclick="nextChallenge()" class="px-5 py-2.5 bg-[#397BC8] hover:bg-[#19334C] text-white font-bold text-xs rounded-lg shadow-sm transition-all">
+                Ir para o Próximo Desafio &rarr;
+              </button>
+            </div>
+          </div>
+        ` : `
+          <!-- STEP QUESTION & ALTERNATIVES -->
+          <div class="space-y-4">
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+              <p class="text-xs sm:text-sm font-bold text-[#101E30] leading-relaxed">${stepData.question}</p>
+            </div>
+
+            <div class="space-y-2.5" id="stepOptionsContainer">
+              ${stepData.options.map((opt, idx) => {
+                const isSelected = challenge.selectedOptions[step] === idx;
+                return `
+                  <button onclick="answerStep(${challenge.id}, ${step}, ${idx})" class="w-full text-left p-3.5 rounded-xl border text-xs font-medium transition-all flex items-start space-x-3 ${isSelected ? 'border-[#397BC8] bg-blue-50/50 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'}">
+                    <span class="w-5 h-5 rounded-full border border-slate-300 flex items-center justify-center text-[10px] font-bold text-slate-600 shrink-0 mt-0.5">${String.fromCharCode(65 + idx)}</span>
+                    <span class="text-slate-800 leading-snug flex-1">${opt.text}</span>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+
+            <!-- FEEDBACK AREA -->
+            <div id="stepFeedbackArea"></div>
+          </div>
+        `}
+      `;
+
+      lucide.createIcons();
+    }
+
+    function answerStep(challengeId, step, optionIdx) {
+      const challenge = gameState.challenges.find(c => c.id === challengeId);
+      if (!challenge) return;
+
+      challenge.selectedOptions[step] = optionIdx;
+      const option = challenge[`step${step}`].options[optionIdx];
+
+      const feedbackArea = document.getElementById('stepFeedbackArea');
+      if (!feedbackArea) return;
+
+      if (option.correct) {
+        // Mark step done if not already
+        if (!challenge[`step${step}Done`]) {
+          challenge[`step${step}Done`] = true;
+          challenge.scoreEarned += 1;
+        }
+
+        // Add SIEM log
+        gameState.logs.unshift({
+          time: new Date().toLocaleTimeString('pt-BR'),
+          text: `Etapa ${step} do Desafio ${challenge.id} concluída com sucesso.`,
+          type: 'success'
+        });
+
+        // Check if all steps completed
+        if (challenge.step1Done && challenge.step2Done && challenge.step3Done) {
+          challenge.isCompleted = true;
+          // Update corresponding alert status to Mitigado
+          const targetAlert = gameState.alerts.find(a => a.challengeId === challenge.id);
+          if (targetAlert) targetAlert.status = 'Mitigado';
+        }
+
+        calculateMetrics();
+        updateGlobalBadges();
+
+        feedbackArea.innerHTML = `
+          <div class="p-4 rounded-xl bg-teal-50 border border-teal-200 text-teal-900 space-y-2 mt-3 animate-fade-in">
+            <div class="flex items-center space-x-2 font-bold text-xs text-[#269D99]">
+              <i data-lucide="check-circle" class="w-4 h-4"></i>
+              <span>Resposta Correta! (+1 Ponto)</span>
+            </div>
+            <p class="text-xs text-teal-800 leading-relaxed">${option.exp}</p>
+            <div class="pt-2">
+              ${challenge.isCompleted ? `
+                <button onclick="renderChallengeWizard()" class="px-4 py-2 bg-[#269D99] text-white text-xs font-bold rounded-lg hover:bg-teal-700 transition-all">
+                  Finalizar Desafio
+                </button>
+              ` : `
+                <button onclick="advanceStep(${challenge.id}, ${step + 1})" class="px-4 py-2 bg-[#397BC8] text-white text-xs font-bold rounded-lg hover:bg-[#19334C] transition-all flex items-center space-x-1">
+                  <span>Avançar para Etapa ${step + 1}</span>
+                  <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                </button>
+              `}
+            </div>
+          </div>
+        `;
+      } else {
+        feedbackArea.innerHTML = `
+          <div class="p-4 rounded-xl bg-red-50 border border-red-200 text-red-900 space-y-2 mt-3 animate-fade-in">
+            <div class="flex items-center space-x-2 font-bold text-xs text-red-600">
+              <i data-lucide="x-circle" class="w-4 h-4"></i>
+              <span>Resposta Incorreta</span>
+            </div>
+            <p class="text-xs text-red-800 leading-relaxed">${option.exp}</p>
+            <div class="pt-2">
+              <button onclick="renderChallengeWizard()" class="px-4 py-2 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 transition-all">
+                Tentar Novamente
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      lucide.createIcons();
+    }
+
+    function advanceStep(challengeId, nextStep) {
+      const challenge = gameState.challenges.find(c => c.id === challengeId);
+      if (challenge) {
+        challenge.currentStep = nextStep;
+        renderChallengeWizard();
+      }
+    }
+
+    function nextChallenge() {
+      if (gameState.selectedChallengeId < 5) {
+        gameState.selectedChallengeId += 1;
+        renderMission();
+      } else {
+        switchTab('report');
+      }
+    }
+
+    // ==========================================
+    // RENDER: RELATÓRIO FINAL DE AUDITORIA
+    // ==========================================
+
+    function renderReport() {
+      const metrics = calculateMetrics();
+
+      const reportScore = document.getElementById('reportScore');
+      const reportPercentage = document.getElementById('reportPercentage');
+      const reportProtectionLevel = document.getElementById('reportProtectionLevel');
+      const reportCompletedCount = document.getElementById('reportCompletedCount');
+
+      if (reportScore) reportScore.innerText = `${metrics.totalScore} / 15 pts`;
+
+      const perc = Math.round((metrics.totalScore / 15) * 100);
+      if (reportPercentage) reportPercentage.innerText = `Aproveitamento: ${perc}%`;
+      if (reportCompletedCount) reportCompletedCount.innerText = `${gameState.challenges.filter(c => c.isCompleted).length} / 5`;
+
+      if (reportProtectionLevel) {
+        if (perc === 100) {
+          reportProtectionLevel.innerText = 'Excelência Hospitalar (Defesa Total)';
+          reportProtectionLevel.className = 'text-2xl font-extrabold text-[#269D99] mt-1';
+        } else if (perc >= 70) {
+          reportProtectionLevel.innerText = 'Nível Avançado de Proteção';
+          reportProtectionLevel.className = 'text-2xl font-extrabold text-[#397BC8] mt-1';
+        } else if (perc >= 40) {
+          reportProtectionLevel.innerText = 'Nível Básico / Intermediário';
+          reportProtectionLevel.className = 'text-2xl font-extrabold text-amber-600 mt-1';
+        } else {
+          reportProtectionLevel.innerText = 'Vulnerável / Alerta Crítico';
+          reportProtectionLevel.className = 'text-2xl font-extrabold text-red-600 mt-1';
+        }
+      }
+
+      // Mandatory Requirements Checklist
+      const reqContainer = document.getElementById('reportRequirementsChecklist');
+      if (reqContainer) {
+        const completedCount = gameState.challenges.filter(c => c.isCompleted).length;
+        const reqs = [
+          { label: 'Resolução de pelo menos 4 desafios hospitalares', done: completedCount >= 4 },
+          { label: 'Cumprimento obrigatório das 3 etapas sequenciais em cada desafio', done: completedCount > 0 },
+          { label: 'Identificação correta de vulnerabilidades de IoT médica', done: gameState.challenges.some(c => c.step1Done) },
+          { label: 'Reconhecimento dos riscos e impactos clínicos/operacionais', done: gameState.challenges.some(c => c.step2Done) },
+          { label: 'Seleção das medidas de proteção cibernética adequadas', done: gameState.challenges.some(c => c.step3Done) }
+        ];
+
+        reqContainer.innerHTML = reqs.map(r => `
+          <div class="p-2.5 rounded-lg border ${r.done ? 'bg-teal-50 border-teal-200 text-teal-900' : 'bg-slate-50 border-slate-200 text-slate-500'} flex items-center space-x-2">
+            <span class="font-bold text-sm">${r.done ? '✓' : '✗'}</span>
+            <span>${r.label}</span>
+          </div>
+        `).join('');
+      }
+
+      // Detailed Audit Table
+      const tableBody = document.getElementById('reportTableBody');
+      if (tableBody) {
+        tableBody.innerHTML = gameState.challenges.map(c => {
+          const opt1 = c.step1Done ? c.step1.options[c.selectedOptions[1]]?.text : 'Pendente';
+          const opt2 = c.step2Done ? c.step2.options[c.selectedOptions[2]]?.text : 'Pendente';
+          const opt3 = c.step3Done ? c.step3.options[c.selectedOptions[3]]?.text : 'Pendente';
+
+          return `
+            <tr class="hover:bg-slate-50">
+              <td class="p-3 font-semibold text-[#101E30]">
+                ${c.title}<br>
+                <span class="text-[10px] font-mono text-slate-500">${c.sector}</span>
+              </td>
+              <td class="p-3 text-slate-600 max-w-xs">${opt1}</td>
+              <td class="p-3 text-slate-600 max-w-xs">${opt2}</td>
+              <td class="p-3 text-slate-600 max-w-xs">${opt3}</td>
+              <td class="p-3 font-mono font-bold text-[#269D99]">${c.scoreEarned} / 3</td>
+            </tr>
+          `;
+        }).join('');
+      }
+    }
+
+    function resetWholeMission() {
+      gameState.score = 0;
+      gameState.alerts = [...ALERTS_DATA.map(a => ({ ...a, status: 'Ativo' }))];
+      gameState.challenges = CHALLENGES_DATA.map(c => ({
+        ...c,
+        currentStep: 1,
+        step1Done: false,
+        step2Done: false,
+        step3Done: false,
+        isCompleted: false,
+        scoreEarned: 0,
+        selectedOptions: { 1: null, 2: null, 3: null }
+      }));
+      gameState.selectedChallengeId = 1;
+
+      calculateMetrics();
+      updateGlobalBadges();
+      renderDashboard();
+      renderBlueprint();
+      renderInventory();
+      renderAlerts();
+      renderMission();
+      renderReport();
+
+      switchTab('dashboard');
+    }
+  </script>
+</body>
+</html>
